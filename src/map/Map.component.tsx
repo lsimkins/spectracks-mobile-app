@@ -1,8 +1,9 @@
 'use strict';
 /* eslint no-console: 0 */
 
-import React, { Component } from 'react';
-import Mapbox, { MapView } from '@mapbox/react-native-mapbox-gl';
+import * as React from 'react';
+import * as Mapbox from '@mapbox/react-native-mapbox-gl';
+const MapView = Mapbox.MapView;
 import {
   AppRegistry,
   StyleSheet,
@@ -15,13 +16,19 @@ import {
 const accessToken = 'pk.eyJ1Ijoic3BlY3RyYWNrcyIsImEiOiJjajlrNXdkamQzdjAxMzNsZ2g3ajZ2ZWVnIn0.vEtEWpjpSQtD1jSGKRtCsA';
 Mapbox.setAccessToken(accessToken);
 
-export class MapExample extends Component {
+export class Map extends React.Component {
+  private _map;
+  private _offlineProgressSubscription;
+  private _offlineMaxTilesSubscription;
+  private _offlineErrorSubscription;
+
   state = {
     center: {
       latitude: 40.72052634,
       longitude: -73.97686958312988
     },
     zoom: 11,
+    currentZoom: null,
     userTrackingMode: Mapbox.userTrackingMode.none,
     annotations: [{
       coordinates: [40.72052634, -73.97686958312988],
@@ -185,9 +192,6 @@ export class MapExample extends Component {
           onLongPress={this.onLongPress}
           onTap={this.onTap}
         />
-      <ScrollView style={styles.scrollView}>
-        {this._renderButtons()}
-      </ScrollView>
       </View>
     );
   }
@@ -195,122 +199,6 @@ export class MapExample extends Component {
   _renderButtons() {
     return (
       <View>
-        <Text onPress={() => this._map && this._map.setDirection(0)}>
-          Set direction to 0
-        </Text>
-        <Text onPress={() => this._map && this._map.setZoomLevel(6)}>
-          Zoom out to zoom level 6
-        </Text>
-        <Text onPress={() => this._map && this._map.setCenterCoordinate(48.8589, 2.3447)}>
-          Go to Paris at current zoom level {parseInt(this.state.currentZoom)}
-        </Text>
-        <Text onPress={() => this._map && this._map.setCenterCoordinateZoomLevel(35.68829, 139.77492, 14)}>
-          Go to Tokyo at fixed zoom level 14
-        </Text>
-        <Text onPress={() => this._map && this._map.easeTo({ pitch: 30 })}>
-          Set pitch to 30 degrees
-        </Text>
-        <Text onPress={this.addNewMarkers}>
-          Add new marker
-        </Text>
-        <Text onPress={this.updateMarker2}>
-          Update marker2
-        </Text>
-        <Text onPress={() => this._map && this._map.selectAnnotation('marker1')}>
-          Open marker1 popup
-        </Text>
-        <Text onPress={() => this._map && this._map.deselectAnnotation()}>
-          Deselect annotation
-        </Text>
-        <Text onPress={this.removeMarker2}>
-          Remove marker2 annotation
-        </Text>
-        <Text onPress={() => this.setState({ annotations: [] })}>
-          Remove all annotations
-        </Text>
-        <Text onPress={() => this._map && this._map.setVisibleCoordinateBounds(40.712, -74.227, 40.774, -74.125, 100, 0, 0, 0)}>
-          Set visible bounds to 40.7, -74.2, 40.7, -74.1
-        </Text>
-        <Text onPress={() => this.setState({ userTrackingMode: Mapbox.userTrackingMode.followWithHeading })}>
-          Set userTrackingMode to followWithHeading
-        </Text>
-        <Text onPress={() => this._map && this._map.getCenterCoordinateZoomLevel((location)=> {
-            console.log(location);
-          })}>
-          Get location
-        </Text>
-        <Text onPress={() => this._map && this._map.getDirection((direction)=> {
-            console.log(direction);
-          })}>
-          Get direction
-        </Text>
-        <Text onPress={() => this._map && this._map.getBounds((bounds)=> {
-            console.log(bounds);
-          })}>
-          Get bounds
-        </Text>
-        <Text onPress={async () => {
-          try {
-            await Mapbox.initializeOfflinePacks();
-
-            await Mapbox.addOfflinePack({
-              name: 'test',
-              type: 'bbox',
-              bounds: [42.00273287349021, 12.635713745117073, 41.74068098333959, 12.153523284912126],
-              minZoomLevel: 4,
-              maxZoomLevel: 15,
-              metadata: { anyValue: 'you wish' },
-              styleURL: Mapbox.mapStyles.dark
-            });
-
-            console.log('Offline pack added');
-          } catch (e) {
-            console.log(e);
-          }
-        }}>
-          Create offline pack
-        </Text>
-        <Text onPress={() => {
-            Mapbox.getOfflinePacks()
-              .then(packs => {
-                console.log(packs);
-              })
-              .catch(err => {
-                console.log(err);
-              });
-        }}>
-          Get offline packs
-        </Text>
-        <Text onPress={() => {
-            Mapbox.suspendOfflinePack('test')
-              .then(info => {
-                if (info.suspended) {
-                  console.log('Suspended', info.suspended);
-                } else {
-                  console.log('No packs to suspend');
-                }
-              })
-              .catch(err => {
-                console.log(err);
-              });
-        }}>
-          Pause/Suspend pack with name 'test'
-        </Text>
-        <Text onPress={() => {
-            Mapbox.resumeOfflinePack('test')
-              .then(info => {
-                if (info.resumed) {
-                  console.log('Resumed', info.resumed);
-                } else {
-                  console.log('No packs to resume');
-                }
-              })
-              .catch(err => {
-                console.log(err);
-              });
-        }}>
-          Resume pack with name 'test'
-        </Text>
         <Text onPress={() => {
             Mapbox.removeOfflinePack('test')
               .then(info => {
@@ -335,7 +223,8 @@ export class MapExample extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'stretch'
+    alignItems: 'stretch',
+    width: '100%'
   },
   map: {
     flex: 1
@@ -344,5 +233,3 @@ const styles = StyleSheet.create({
     flex: 1
   }
 });
-
-AppRegistry.registerComponent('YourAppName', () => MapExample);

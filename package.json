@@ -10,13 +10,18 @@
 		"@mapbox/react-native-mapbox-gl": "5.2.3-alpha1",
 		"prop-types": "^15.6.0",
 		"react": "16.0.0",
-		"react-native": "0.50.1"
+		"react-native": "0.50.1",
+		"tslib": "^1.8.0"
 	},
 	"devDependencies": {
+		"@types/react": "^15.6.6",
+		"@types/react-native": "^0.50.1",
 		"babel-jest": "21.2.0",
 		"babel-preset-react-native": "4.0.0",
 		"jest": "21.2.1",
-		"react-test-renderer": "16.0.0"
+		"react-native-typescript-transformer": "^1.1.4",
+		"react-test-renderer": "16.0.0",
+		"typescript": "^2.6.1"
 	},
 	"jest": {
 		"preset": "react-native"
